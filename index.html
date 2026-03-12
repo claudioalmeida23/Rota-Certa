@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rota Certa</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        :root {
+            --bg: #000000;
+            --card: #0a0a0a;
+            --primary: #2ecc71;
+            --accent: #3498db;
+            --danger: #e74c3c;
+            --text: #ffffff;
+            --border: #1a1a1a;
+            --muted: #666666;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #000;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 1;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #0d0d0d;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: black;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        button.scanner { background: var(--accent); color: white; }
+        button.mapa { background: white; color: black; grid-column: span 2; margin-top: 5px; }
+        button.clear { background: var(--danger); color: white; width: 100%; margin-top: 15px; font-size: 10px; }
+
+        #lista {
+            background: var(--card);
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        #reader {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            background: #000;
+        }
+
+        #map {
+            height: 350px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            background: #000;
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: #0f0f0f;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* --- SEÇÃO DE CRÉDITOS --- */
+        footer {
+            padding: 30px 15px;
+            text-align: center;
+            background: #000;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .creator {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 13px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .tech-list {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tech-item {
+            background: #111;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #222;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFF55"><path d="M600-800H360v280h240v-280Zm200 0H680v280h120v-280ZM575-440H320v240h222q21 0 40.5-7t35.5-21l166-137q-8-8-18-12t-21-6q-17-3-33 1t-30 15l-108 87H400v-80h146l44-36q5-3 7.5-8t2.5-11q0-10-7.5-17.5T575-440Zm-335 0h-80v280h80v-280Zm40 0v-360q0-33 23.5-56.5T360-880h440q33 0 56.5 23.5T880-800v280q0 33-23.5 56.5T800-440H280ZM240-80h-80q-33 0-56.5-23.5T80-160v-280q0-33 23.5-56.5T160-520h415q85 0 164 29t127 98l27 41-223 186q-27 23-60 34.5T542-120H309q-11 18-29 29t-40 11Z"/></svg> Rota Certa</h1>
+</header>
+
+<div class="container">
+    <input id="endereco" placeholder="Digite o endereço de entrega">
+
+    <div class="actions">
+        <button onclick="addEndereco()">➕ Adicionar</button>
+        <button class="scanner" onclick="iniciarScanner()">📷 Escanear QR</button>
+        <button class="mapa" onclick="gerarMapa()">Otimizar Rota no Mapa</button>
+    </div>
+
+    <div id="reader"></div>
+
+    <div id="lista">
+        <div class="list-header">
+            <span style="font-size: 11px; text-transform: uppercase; color: #555;">Lista de Entregas</span>
+            <span id="contador" style="color: var(--primary); font-weight: bold;">0 paradas</span>
+        </div>
+        <div id="entregas"></div>
+        <div style="padding: 0 15px 15px;">
+            <button class="clear" onclick="limparTudo()">🗑️ Resetar Jornada do Dia</button>
+        </div>
+    </div>
+
+    <div id="map"></div>
+</div>
+
+<footer>
+    <span class="creator">Desenvolvido por Claudio Almeida.CAAS</span>
+    <div>© 2026 - Todos os direitos reservados</div>
+    <div class="tech-list">
+        <span class="tech-item">Leaflet.js (Mapas)</span>
+        <span class="tech-item">OpenStreetMap (Geocodificação)</span>
+        <span class="tech-item">Html5-QRCode (Scanner)</span>
+        <span class="tech-item">LocalStorage (Dados Offline)</span>
+    </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+    let lista = JSON.parse(localStorage.getItem("rotacerta")) || [];
+    let markers = [];
+    let html5QrCode;
+
+    function salvar() {
+        localStorage.setItem("rotacerta", JSON.stringify(lista));
+        mostrarLista();
+    }
+
+    function addEndereco() {
+        const campo = document.getElementById("endereco");
+        if (campo.value.trim() === "") return;
+        lista.push(campo.value);
+        campo.value = "";
+        salvar();
+    }
+
+    function mostrarLista() {
+        const div = document.getElementById("entregas");
+        const cont = document.getElementById("contador");
+        div.innerHTML = "";
+        cont.innerText = lista.length + (lista.length === 1 ? " parada" : " paradas");
+        
+        lista.forEach((e, i) => {
+            div.innerHTML += `
+                <div class="item">
+                    <span>${i + 1}. ${e}</span>
+                    <button onclick="remover(${i})" style="background:none; color:var(--danger); font-size:18px; border:none; cursor:pointer;">✕</button>
+                </div>
+            `;
+        });
+    }
+
+    function remover(i) {
+        lista.splice(i, 1);
+        salvar();
+    }
+
+    function limparTudo() {
+        if(confirm("Deseja limpar todos os dados da jornada atual?")) {
+            lista = [];
+            salvar();
+            if(markers.length > 0) {
+                markers.forEach(m => map.removeLayer(m));
+                markers = [];
+            }
+        }
+    }
+
+    async function iniciarScanner() {
+        if (html5QrCode) { await html5QrCode.stop(); }
+        html5QrCode = new Html5Qrcode("reader");
+        
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: 250 }, 
+            (text) => {
+                lista.push(text);
+                salvar();
+                html5QrCode.stop();
+                alert("Entrega adicionada com sucesso!");
+            }
+        ).catch(err => {
+            alert("Erro: Verifique a permissão da câmera e se está usando conexão segura (HTTPS).");
+        });
+    }
+
+    // Inicialização do Mapa
+    let map = L.map('map', { zoomControl: false }).setView([-23.55, -46.63], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    async function gerarMapa() {
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        if (lista.length === 0) return alert("Adicione endereços para ver no mapa.");
+
+        for (let end of lista) {
+            try {
+                let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(end)}`);
+                let data = await res.json();
+                if (data.length > 0) {
+                    let m = L.marker([data[0].lat, data[0].lon]).addTo(map).bindPopup(end);
+                    markers.push(m);
+                    map.setView([data[0].lat, data[0].lon], 14);
+                }
+            } catch (e) { console.error("Falha ao localizar:", end); }
+        }
+    }
+
+    mostrarLista();
+</script>
+
+</body>
+</html>
