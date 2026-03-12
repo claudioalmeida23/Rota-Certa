@@ -1,10 +1,10 @@
-# 🚚 Rota Certa
+#  Rota Certa
 
 O **Rota Certa** é uma ferramenta web para entregadores, focada em simplicidade e eficiência. Ele permite organizar uma lista de entregas diárias e visualizar todos os destinos em um mapa com um único clique.
 
 ---
 
-## 🛠️ Funcionalidades principais
+##  Funcionalidades principais
 
 * **Adição Manual:** Digite o endereço e adicione à lista rapidamente.
 * **Leitor de QR Code:** Use a câmera do celular para ler endereços em etiquetas de pacotes.
